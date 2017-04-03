@@ -16,6 +16,12 @@ Terraform module to create an AWS Elasticbeanstalk application using a Docker co
 | instance_type           | String | AWS instance type to deploy default: t2.micro         | no       |
 | autoscaling_maxsize     | String | Maximum instances in the autoscaling group default: 3 | no       |
 
+## Outputs
+
+| Name  | Type   | Description               |
+| ----  | ----   | -----------               |
+| cname | String | The FQDN for the resource |
+
 ## Usage
 ```terraform
 module "elasticbeanstalk" {
