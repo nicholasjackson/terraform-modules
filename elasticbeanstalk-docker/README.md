@@ -4,7 +4,7 @@ Terraform module to create an AWS Elasticbeanstalk application using a Docker co
 ## Variables
 
 | Name                    | Type   | Description                                           | Required |
-| ----                    | ----   | -----------                                           |          | 
+| ----                    | ----   | -----------                                           | -------- | 
 | application_name        | String | Name of the application                               | yes      |
 | application_description | String | Description for the application                       | yes      |
 | application_environment | String | Environment label, e.g. development, production       | yes      |
