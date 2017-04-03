@@ -1,10 +1,35 @@
 # Create the user-data for the Nomad server
+data "template_file" "config_consul_client" {
+  template = "${file("${path.module}/templates/consul-client.json.tpl")}"
+
+  vars {
+    namespace             = "${var.namespace}"
+    consul_join_tag_key   = "${var.consul_join_tag_key}"
+    consul_join_tag_value = "${var.consul_join_tag_value}"
+  }
+}
+
+data "template_file" "config_nomad_startup_server" {
+  template = "${file("${path.module}/templates/server.hcl.tpl")}"
+
+  vars {
+    servers = "${var.servers}"
+  }
+}
+
+data "template_file" "config_nomad_startup_agent" {
+  template = "${file("${path.module}/templates/agent.hcl.tpl")}"
+}
+
 data "template_file" "server" {
   count    = "${var.servers}"
   template = "${file("${path.module}/templates/nomad.sh.tpl")}"
 
   vars {
-    nomad_version = "${var.nomad_version}"
+    consul_version = "${var.consul_version}"
+    nomad_version  = "${var.nomad_version}"
+    nomad_config   = "${data.template_file.config_nomad_startup_server.rendered}"
+    consul_config  = "${data.template_file.config_consul_client.rendered}"
   }
 }
 
@@ -14,7 +39,10 @@ data "template_file" "agent" {
   template = "${file("${path.module}/templates/nomad.sh.tpl")}"
 
   vars {
-    nomad_version = "${var.nomad_version}"
+    consul_version = "${var.consul_version}"
+    nomad_version  = "${var.nomad_version}"
+    nomad_config   = "${data.template_file.config_nomad_startup_agent.rendered}"
+    consul_config  = "${data.template_file.config_consul_client.rendered}"
   }
 }
 

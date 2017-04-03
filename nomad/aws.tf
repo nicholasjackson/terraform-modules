@@ -16,7 +16,7 @@ data "aws_ami" "ubuntu-1404" {
 }
 
 resource "aws_key_pair" "nomad" {
-  key_name   = "${var.namespace}"
+  key_name   = "${var.namespace}-nomad"
   public_key = "${file("${var.public_key_path}")}"
 }
 

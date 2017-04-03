@@ -9,6 +9,39 @@ echo "Installing dependencies..."
 sudo apt-get -qq update &>/dev/null
 sudo apt-get -yqq install unzip &>/dev/null
 
+echo "Fetching Consul..."
+cd /tmp
+curl -sLo consul.zip https://releases.hashicorp.com/consul/${consul_version}/consul_${consul_version}_linux_amd64.zip
+
+echo "Installing Consul..."
+unzip consul.zip >/dev/null
+sudo chmod +x consul
+sudo mv consul /usr/local/bin/consul
+
+# Setup Consul
+sudo mkdir -p /mnt/consul
+sudo mkdir -p /etc/consul.d
+sudo tee /etc/consul.d/config.json > /dev/null <<EOF
+$config
+EOF
+
+sudo tee /etc/init/consul.conf > /dev/null <<"EOF"
+description "Consul"
+start on runlevel [2345]
+stop on runlevel [06]
+respawn
+post-stop exec sleep 5
+# This is to avoid Upstart re-spawning the process upon `consul leave`
+normal exit 0 INT
+# Stop consul will not mark node as failed but left
+kill signal INT
+exec /usr/local/bin/consul agent \
+  -config-dir="/etc/consul.d"
+EOF
+
+sudo service consul stop || true
+sudo service consul start
+
 echo "Fetching Nomad..."
 cd /tmp
 curl -sLo nomad.zip https://releases.hashicorp.com/nomad/${nomad_version}/nomad_${nomad_version}_linux_amd64.zip
@@ -19,22 +52,9 @@ sudo chmod +x nomad
 sudo mv nomad /usr/local/bin/nomad
 
 # Setup Nomad
-sudo mkdir -p /mnt/nomad
 sudo mkdir -p /etc/nomad.d
-sudo tee /etc/nomad.d/server.hcl > /dev/null <<EOF
-# Increase log verbosity
-log_level = "DEBUG"
-
-# Setup data dir
-data_dir = "/tmp/server1"
-
-# Enable the server
-server {
-    enabled = true
-
-    # Self-elect, should be 3 or 5 for production
-    bootstrap_expect = 1
-}
+sudo tee /etc/nomad.d/config.hcl > /dev/null <<EOF
+${nomad_config}
 EOF
 
 sudo tee /etc/init/nomad.conf > /dev/null <<"EOF"
@@ -48,7 +68,7 @@ normal exit 0 INT
 # Stop consul will not mark node as failed but left
 kill signal INT
 exec /usr/local/bin/nomad agent \
-  -config-dir="/etc/nomad.d"
+  -config="/etc/nomad.d"
 EOF
 
 sudo service nomad stop || true
