@@ -1,4 +1,6 @@
 # Enable the server
+data_dir   = "/mnt/nomad"
+
 server {
     enabled = true
 

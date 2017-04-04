@@ -48,7 +48,7 @@ data "template_file" "client" {
 resource "aws_instance" "server" {
   count = "${var.servers}"
 
-  ami           = "${data.aws_ami.ubuntu-1404.id}"
+  ami           = "${data.aws_ami.ubuntu-1604.id}"
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.consul.id}"
 
@@ -67,7 +67,7 @@ resource "aws_instance" "server" {
 resource "aws_instance" "client" {
   count = "${var.clients}"
 
-  ami           = "${data.aws_ami.ubuntu-1404.id}"
+  ami           = "${data.aws_ami.ubuntu-1604.id}"
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.consul.id}"
 

@@ -1,5 +1,5 @@
 datacenter = "dc1"
-data_dir   = "/etc/nomad.d"
+data_dir   = "/mnt/nomad"
 
 client {
   enabled = true

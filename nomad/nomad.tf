@@ -50,7 +50,7 @@ data "template_file" "agent" {
 resource "aws_instance" "server" {
   count = "${var.servers}"
 
-  ami           = "${data.aws_ami.ubuntu-1404.id}"
+  ami           = "${data.aws_ami.ubuntu-1604.id}"
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.nomad.id}"
 
@@ -68,7 +68,7 @@ resource "aws_instance" "server" {
 resource "aws_instance" "agent" {
   count = "${var.agents}"
 
-  ami           = "${data.aws_ami.ubuntu-1404.id}"
+  ami           = "${data.aws_ami.ubuntu-1604.id}"
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.nomad.id}"
 

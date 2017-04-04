@@ -9,6 +9,13 @@ echo "Installing dependencies..."
 sudo apt-get -qq update &>/dev/null
 sudo apt-get -yqq install unzip &>/dev/null
 
+echo "Installing Docker..."
+sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+sudo apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'
+sudo apt-get update
+sudo apt-get install -y docker-engine
+
+
 echo "Fetching Consul..."
 cd /tmp
 curl -sLo consul.zip https://releases.hashicorp.com/consul/${consul_version}/consul_${consul_version}_linux_amd64.zip
@@ -25,22 +32,18 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 ${consul_config}
 EOF
 
-sudo tee /etc/init/consul.conf > /dev/null <<"EOF"
-description "Consul"
-start on runlevel [2345]
-stop on runlevel [06]
-respawn
-post-stop exec sleep 5
-# This is to avoid Upstart re-spawning the process upon `consul leave`
-normal exit 0 INT
+sudo tee /etc/systemd/system/consul.service > /dev/null <<"EOF"
+[Unit]
+Description = "Consul"
+
+[Service]
 # Stop consul will not mark node as failed but left
-kill signal INT
-exec /usr/local/bin/consul agent \
-  -config-dir="/etc/consul.d"
+KillSignal=INT
+ExecStart=/usr/local/bin/consul agent -config-dir="/etc/consul.d"
+Restart=always
+ExecStopPost=sleep 5
 EOF
 
-sudo service consul stop || true
-sudo service consul start
 
 echo "Fetching Nomad..."
 cd /tmp
@@ -58,19 +61,21 @@ sudo tee /etc/nomad.d/config.hcl > /dev/null <<EOF
 ${nomad_config}
 EOF
 
-sudo tee /etc/init/nomad.conf > /dev/null <<"EOF"
-description "Nomad"
-start on runlevel [2345]
-stop on runlevel [06]
-respawn
-post-stop exec sleep 5
-normal exit 0 INT
+sudo tee /etc/systemd/system/nomad.service > /dev/null <<"EOF"
+[Unit]
+Description = "Nomad"
+
+[Service]
 # Stop consul will not mark node as failed but left
-kill signal INT
-exec /usr/local/bin/nomad agent \
-  -config="/etc/nomad.d" \
-  -data-dir="/mnt/nomad"
+KillSignal=INT
+ExecStart=/usr/local/bin/nomad agent -config="/etc/nomad.d"
+Restart=always
+ExecStopPost=sleep 5
 EOF
 
-sudo service nomad stop || true
-sudo service nomad start
+sudo systemctl daemon-reload
+sudo systemctl enable consul.service
+sudo systemctl enable nomad.service
+
+sudo systemctl start consul.service
+sudo systemctl start nomad.service

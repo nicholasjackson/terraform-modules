@@ -25,19 +25,19 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 ${config}
 EOF
 
-sudo tee /etc/init/consul.conf > /dev/null <<"EOF"
-description "Consul"
-start on runlevel [2345]
-stop on runlevel [06]
-respawn
-post-stop exec sleep 5
-# This is to avoid Upstart re-spawning the process upon `consul leave`
-normal exit 0 INT
+sudo tee /etc/systemd/system/consul.service > /dev/null <<"EOF"
+[Unit]
+Description = "Consul"
+
+[Service]
 # Stop consul will not mark node as failed but left
-kill signal INT
-exec /usr/local/bin/consul agent \
-  -config-dir="/etc/consul.d"
+KillSignal=INT
+ExecStart=/usr/local/bin/consul agent -config-dir="/etc/consul.d"
+Restart=always
+ExecStopPost=sleep 5
 EOF
 
-sudo service consul stop || true
-sudo service consul start
+sudo systemctl daemon-reload
+sudo systemctl enable consul.service
+
+sudo systemctl start consul.service

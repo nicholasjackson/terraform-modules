@@ -1,4 +1,4 @@
-# Get the list of official Canonical Ubuntu 16.04 AMIs
+# Get the list of official Canonical Ubunt 16.04 AMIs
 data "aws_ami" "ubuntu-1604" {
   most_recent = true
 
@@ -15,7 +15,7 @@ data "aws_ami" "ubuntu-1604" {
   owners = ["099720109477"] # Canonical
 }
 
-resource "aws_key_pair" "nomad" {
-  key_name   = "${var.namespace}-nomad"
+resource "aws_key_pair" "consul" {
+  key_name   = "${var.namespace}-consul"
   public_key = "${file("${var.public_key_path}")}"
 }
