@@ -1,5 +1,5 @@
 # Create a VPC to launch our instances into
-resource "aws_vpc" "consul" {
+resource "aws_vpc" "default" {
   cidr_block           = "${var.vpc_cidr_block}"
   enable_dns_hostnames = true
 
@@ -9,8 +9,8 @@ resource "aws_vpc" "consul" {
 }
 
 # Create an internet gateway to give our subnet access to the outside world
-resource "aws_internet_gateway" "consul" {
-  vpc_id = "${aws_vpc.consul.id}"
+resource "aws_internet_gateway" "default" {
+  vpc_id = "${aws_vpc.default.id}"
 
   tags {
     "Name" = "${var.namespace}"
@@ -19,18 +19,18 @@ resource "aws_internet_gateway" "consul" {
 
 # Grant the VPC internet access on its main route table
 resource "aws_route" "internet_access" {
-  route_table_id         = "${aws_vpc.consul.main_route_table_id}"
+  route_table_id         = "${aws_vpc.default.main_route_table_id}"
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = "${aws_internet_gateway.consul.id}"
+  gateway_id             = "${aws_internet_gateway.default.id}"
 }
 
 # Grab the list of availability zones
 data "aws_availability_zones" "available" {}
 
 # Create a subnet to launch our instances into
-resource "aws_subnet" "consul" {
+resource "aws_subnet" "default" {
   count                   = "${length(var.cidr_blocks)}"
-  vpc_id                  = "${aws_vpc.consul.id}"
+  vpc_id                  = "${aws_vpc.default.id}"
   availability_zone       = "${data.aws_availability_zones.available.names[count.index]}"
   cidr_block              = "${var.cidr_blocks[count.index]}"
   map_public_ip_on_launch = true
@@ -41,9 +41,9 @@ resource "aws_subnet" "consul" {
 }
 
 # A security group that makes the instances accessible
-resource "aws_security_group" "consul" {
+resource "aws_security_group" "default" {
   name_prefix = "${var.namespace}"
-  vpc_id      = "${aws_vpc.consul.id}"
+  vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
     from_port   = 0
@@ -58,4 +58,12 @@ resource "aws_security_group" "consul" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+output "security_group" {
+  value = "${aws_security_group.default.id}"
+}
+
+output "subnets" {
+  value = ["${aws_subnet.default.*.id}"]
 }

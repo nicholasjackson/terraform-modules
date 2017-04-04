@@ -52,9 +52,9 @@ resource "aws_instance" "server" {
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.consul.id}"
 
-  subnet_id              = "${element(aws_subnet.consul.*.id, count.index)}"
+  subnet_id              = "${element(var.subnets,count.index)}"
   iam_instance_profile   = "${aws_iam_instance_profile.consul-join.name}"
-  vpc_security_group_ids = ["${aws_security_group.consul.id}"]
+  vpc_security_group_ids = ["${var.security_groups}"]
 
   tags = "${map(
     "Name", "${var.namespace}-server-${count.index}",
@@ -71,9 +71,9 @@ resource "aws_instance" "client" {
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.consul.id}"
 
-  subnet_id              = "${element(aws_subnet.consul.*.id, count.index)}"
+  subnet_id              = "${element(var.subnets,count.index)}"
   iam_instance_profile   = "${aws_iam_instance_profile.consul-join.name}"
-  vpc_security_group_ids = ["${aws_security_group.consul.id}"]
+  vpc_security_group_ids = ["${var.security_groups}"]
 
   tags = "${map(
     "Name", "${var.namespace}-client-${count.index}",

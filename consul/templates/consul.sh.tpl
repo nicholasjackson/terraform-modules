@@ -22,7 +22,7 @@ sudo mv consul /usr/local/bin/consul
 sudo mkdir -p /mnt/consul
 sudo mkdir -p /etc/consul.d
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
-$config
+${config}
 EOF
 
 sudo tee /etc/init/consul.conf > /dev/null <<"EOF"

@@ -22,7 +22,7 @@ sudo mv consul /usr/local/bin/consul
 sudo mkdir -p /mnt/consul
 sudo mkdir -p /etc/consul.d
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
-$config
+${consul_config}
 EOF
 
 sudo tee /etc/init/consul.conf > /dev/null <<"EOF"
@@ -52,6 +52,7 @@ sudo chmod +x nomad
 sudo mv nomad /usr/local/bin/nomad
 
 # Setup Nomad
+sudo mkdir -p /mnt/nomad
 sudo mkdir -p /etc/nomad.d
 sudo tee /etc/nomad.d/config.hcl > /dev/null <<EOF
 ${nomad_config}
@@ -63,12 +64,12 @@ start on runlevel [2345]
 stop on runlevel [06]
 respawn
 post-stop exec sleep 5
-# This is to avoid Upstart re-spawning the process upon `consul leave`
 normal exit 0 INT
 # Stop consul will not mark node as failed but left
 kill signal INT
 exec /usr/local/bin/nomad agent \
-  -config="/etc/nomad.d"
+  -config="/etc/nomad.d" \
+  -data-dir="/mnt/nomad"
 EOF
 
 sudo service nomad stop || true

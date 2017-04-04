@@ -54,9 +54,9 @@ resource "aws_instance" "server" {
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.nomad.id}"
 
-  subnet_id              = "${element(aws_subnet.nomad.*.id, count.index)}"
+  subnet_id              = "${element(var.subnets,count.index)}"
   iam_instance_profile   = "${aws_iam_instance_profile.consul-join.name}"
-  vpc_security_group_ids = ["${aws_security_group.nomad.id}"]
+  vpc_security_group_ids = ["${var.security_groups}"]
 
   tags = "${map(
     "Name", "${var.namespace}-nomad-server-${count.index}"
@@ -72,9 +72,9 @@ resource "aws_instance" "agent" {
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.nomad.id}"
 
-  subnet_id              = "${element(aws_subnet.nomad.*.id, count.index)}"
+  subnet_id              = "${element(var.subnets,count.index)}"
   iam_instance_profile   = "${aws_iam_instance_profile.consul-join.name}"
-  vpc_security_group_ids = ["${aws_security_group.nomad.id}"]
+  vpc_security_group_ids = ["${var.security_groups}"]
 
   tags = "${map(
     "Name", "${var.namespace}-nomad-agent-${count.index}"

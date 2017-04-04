@@ -37,16 +37,6 @@ variable "agents" {
   description = "The number of nomad agents"
 }
 
-variable "vpc_cidr_block" {
-  description = "The top-level CIDR block for the VPC."
-  default     = "10.1.0.0/16"
-}
-
-variable "cidr_blocks" {
-  description = "The CIDR blocks to create the workstations in."
-  default     = ["10.1.1.0/24", "10.1.2.0/24"]
-}
-
 variable "consul_join_tag_key" {
   description = "AWS Tag to use for consul auto-join"
 }
@@ -58,4 +48,14 @@ variable "consul_join_tag_value" {
 variable "public_key_path" {
   description = "The absolute path on disk to the SSH public key."
   default     = "~/.ssh/id_rsa.pub"
+}
+
+variable "security_groups" {
+  description = "A list of security groups to attach the instances to"
+  type        = "list"
+}
+
+variable "subnets" {
+  description = "A list of subnets to attach the instances to"
+  type        = "list"
 }
