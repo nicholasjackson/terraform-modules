@@ -9,6 +9,17 @@ data "template_file" "config_consul_client" {
   }
 }
 
+data "template_file" "config_consul_server" {
+  template = "${file("${path.module}/templates/consul-server.json.tpl")}"
+
+  vars {
+    servers               = "${var.servers}"
+    namespace             = "${var.namespace}"
+    consul_join_tag_key   = "${var.consul_join_tag_key}"
+    consul_join_tag_value = "${var.consul_join_tag_value}"
+  }
+}
+
 data "template_file" "config_nomad_startup_server" {
   template = "${file("${path.module}/templates/server.hcl.tpl")}"
 
@@ -22,20 +33,18 @@ data "template_file" "config_nomad_startup_agent" {
 }
 
 data "template_file" "server" {
-  count    = "${var.servers}"
   template = "${file("${path.module}/templates/nomad.sh.tpl")}"
 
   vars {
     consul_version = "${var.consul_version}"
     nomad_version  = "${var.nomad_version}"
     nomad_config   = "${data.template_file.config_nomad_startup_server.rendered}"
-    consul_config  = "${data.template_file.config_consul_client.rendered}"
+    consul_config  = "${data.template_file.config_consul_server.rendered}"
   }
 }
 
 # Create the user-data for the Consul server
 data "template_file" "agent" {
-  count    = "${var.agents}"
   template = "${file("${path.module}/templates/nomad.sh.tpl")}"
 
   vars {
@@ -46,47 +55,68 @@ data "template_file" "agent" {
   }
 }
 
-# Create the Consul cluster
-resource "aws_instance" "server" {
-  count = "${var.servers}"
+resource "aws_launch_configuration" "nomad_server" {
+  name = "${var.namespace}.nomad-server"
 
-  ami           = "${data.aws_ami.ubuntu-1604.id}"
+  image_id      = "${data.aws_ami.ubuntu-1604.id}"
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.nomad.id}"
 
-  subnet_id              = "${element(var.subnets,count.index)}"
-  iam_instance_profile   = "${aws_iam_instance_profile.consul-join.name}"
-  vpc_security_group_ids = ["${var.security_groups}"]
+  iam_instance_profile = "${aws_iam_instance_profile.consul-join.name}"
+  security_groups      = ["${var.security_groups}"]
 
-  tags = "${map(
-    "Name", "${var.namespace}-nomad-server-${count.index}"
-  )}"
-
-  user_data = "${element(data.template_file.server.*.rendered, count.index)}"
+  user_data = "${data.template_file.server.rendered}"
 }
 
-resource "aws_instance" "agent" {
-  count = "${var.agents}"
+resource "aws_autoscaling_group" "nomad_server" {
+  name     = "${var.namespace}.nomad-server"
+  max_size = 5
+  min_size = 3
 
-  ami           = "${data.aws_ami.ubuntu-1604.id}"
+  launch_configuration = "${aws_launch_configuration.nomad_server.name}"
+  vpc_zone_identifier  = ["${var.subnets}"]
+
+  target_group_arns = ["${aws_alb_target_group.nomad.arn}"]
+
+  tag = {
+    key                 = "Name"
+    value               = "${var.namespace}-nomad-server"
+    propagate_at_launch = true
+  }
+
+  tag = {
+    key                 = "${var.consul_join_tag_key}"
+    value               = "${var.consul_join_tag_value}"
+    propagate_at_launch = true
+  }
+}
+
+resource "aws_launch_configuration" "nomad_agent" {
+  name = "${var.namespace}.nomad-agent"
+
+  image_id      = "${data.aws_ami.ubuntu-1604.id}"
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.nomad.id}"
 
-  subnet_id              = "${element(var.subnets,count.index)}"
-  iam_instance_profile   = "${aws_iam_instance_profile.consul-join.name}"
-  vpc_security_group_ids = ["${var.security_groups}"]
+  iam_instance_profile = "${aws_iam_instance_profile.consul-join.name}"
+  security_groups      = ["${var.security_groups}"]
 
-  tags = "${map(
-    "Name", "${var.namespace}-nomad-agent-${count.index}"
-  )}"
-
-  user_data = "${element(data.template_file.agent.*.rendered, count.index)}"
+  user_data = "${data.template_file.agent.rendered}"
 }
 
-output "servers" {
-  value = ["${aws_instance.server.*.public_ip}"]
-}
+resource "aws_autoscaling_group" "nomad_agent" {
+  name     = "${var.namespace}.nomad-agent"
+  max_size = 5
+  min_size = 2
 
-output "agents" {
-  value = ["${aws_instance.agent.*.public_ip}"]
+  target_group_arns = ["${aws_alb_target_group.consul.arn}"]
+
+  launch_configuration = "${aws_launch_configuration.nomad_agent.name}"
+  vpc_zone_identifier  = ["${var.subnets}"]
+
+  tag = {
+    key                 = "Name"
+    value               = "${var.namespace}-nomad-agent"
+    propagate_at_launch = true
+  }
 }

@@ -2,6 +2,11 @@ variable "aws_region" {
   description = "AWS region to create the environment"
 }
 
+variable "aws_zones" {
+  description = "List of AWS availability zones"
+  type        = "list"
+}
+
 variable "profile" {
   description = "AWS profile for account"
 }
@@ -58,4 +63,8 @@ variable "security_groups" {
 variable "subnets" {
   description = "A list of subnets to attach the instances to"
   type        = "list"
+}
+
+variable "vpc_id" {
+  description = "The id of the VPC which the servers are attached to"
 }
