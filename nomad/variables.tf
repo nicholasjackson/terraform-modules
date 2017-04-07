@@ -55,11 +55,6 @@ variable "public_key_path" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
-variable "security_groups" {
-  description = "A list of security groups to attach the instances to"
-  type        = "list"
-}
-
 variable "subnets" {
   description = "A list of subnets to attach the instances to"
   type        = "list"

@@ -63,7 +63,7 @@ resource "aws_launch_configuration" "nomad_server" {
   key_name      = "${aws_key_pair.nomad.id}"
 
   iam_instance_profile = "${aws_iam_instance_profile.consul-join.name}"
-  security_groups      = ["${var.security_groups}"]
+  security_groups      = ["${aws_security_group.default.id}"]
 
   user_data = "${data.template_file.server.rendered}"
 }
@@ -71,7 +71,7 @@ resource "aws_launch_configuration" "nomad_server" {
 resource "aws_autoscaling_group" "nomad_server" {
   name     = "${var.namespace}.nomad-server"
   max_size = 5
-  min_size = 3
+  min_size = "${var.servers}"
 
   launch_configuration = "${aws_launch_configuration.nomad_server.name}"
   vpc_zone_identifier  = ["${var.subnets}"]
@@ -99,7 +99,7 @@ resource "aws_launch_configuration" "nomad_agent" {
   key_name      = "${aws_key_pair.nomad.id}"
 
   iam_instance_profile = "${aws_iam_instance_profile.consul-join.name}"
-  security_groups      = ["${var.security_groups}"]
+  security_groups      = ["${aws_security_group.default.id}"]
 
   user_data = "${data.template_file.agent.rendered}"
 }
@@ -107,9 +107,9 @@ resource "aws_launch_configuration" "nomad_agent" {
 resource "aws_autoscaling_group" "nomad_agent" {
   name     = "${var.namespace}.nomad-agent"
   max_size = 5
-  min_size = 2
+  min_size = "${var.agents}"
 
-  target_group_arns = ["${aws_alb_target_group.consul.arn}"]
+  target_group_arns = ["${aws_alb_target_group.consul.arn}", "${aws_alb_target_group.fabio.arn}"]
 
   launch_configuration = "${aws_launch_configuration.nomad_agent.name}"
   vpc_zone_identifier  = ["${var.subnets}"]
