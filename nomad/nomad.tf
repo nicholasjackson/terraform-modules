@@ -33,25 +33,27 @@ data "template_file" "config_nomad_startup_agent" {
 }
 
 data "template_file" "server" {
-  template = "${file("${path.module}/templates/nomad.sh.tpl")}"
+  template = "${file("${path.module}/templates/nomad-server.sh.tpl")}"
 
   vars {
     consul_version = "${var.consul_version}"
     nomad_version  = "${var.nomad_version}"
     nomad_config   = "${data.template_file.config_nomad_startup_server.rendered}"
     consul_config  = "${data.template_file.config_consul_server.rendered}"
+    fabio_job      = "${file("${path.module}/templates/jobs/fabio.hcl")}"
   }
 }
 
 # Create the user-data for the Consul server
 data "template_file" "agent" {
-  template = "${file("${path.module}/templates/nomad.sh.tpl")}"
+  template = "${file("${path.module}/templates/nomad-agent.sh.tpl")}"
 
   vars {
-    consul_version = "${var.consul_version}"
-    nomad_version  = "${var.nomad_version}"
-    nomad_config   = "${data.template_file.config_nomad_startup_agent.rendered}"
-    consul_config  = "${data.template_file.config_consul_client.rendered}"
+    hashiui_version = "${var.hashiui_version}"
+    consul_version  = "${var.consul_version}"
+    nomad_version   = "${var.nomad_version}"
+    nomad_config    = "${data.template_file.config_nomad_startup_agent.rendered}"
+    consul_config   = "${data.template_file.config_consul_client.rendered}"
   }
 }
 
@@ -109,7 +111,7 @@ resource "aws_autoscaling_group" "nomad_agent" {
   max_size = 5
   min_size = "${var.agents}"
 
-  target_group_arns = ["${aws_alb_target_group.consul.arn}", "${aws_alb_target_group.fabio.arn}"]
+  target_group_arns = ["${aws_alb_target_group.consul.arn}", "${aws_alb_target_group.fabio.arn}", "${aws_alb_target_group.ui.arn}"]
 
   launch_configuration = "${aws_launch_configuration.nomad_agent.name}"
   vpc_zone_identifier  = ["${var.subnets}"]

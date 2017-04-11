@@ -9,13 +9,6 @@ echo "Installing dependencies..."
 sudo apt-get -qq update &>/dev/null
 sudo apt-get -yqq install unzip &>/dev/null
 
-echo "Installing Docker..."
-sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-sudo apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'
-sudo apt-get update
-sudo apt-get install -y docker-engine
-
-
 echo "Fetching Consul..."
 cd /tmp
 curl -sLo consul.zip https://releases.hashicorp.com/consul/${consul_version}/consul_${consul_version}_linux_amd64.zip
@@ -74,36 +67,13 @@ ExecStopPost=sleep 5
 EOF
 
 
-echo "Fetching hashi-ui..."
-cd /tmp
-curl -sLo hashi-ui \
-  https://github.com/jippi/hashi-ui/releases/download/v${hashiui_version}/hashi-ui-linux-amd64
-sudo chmod +x hashi-ui
-sudo mv hashi-ui /usr/local/bin/hashi-ui
-
-echo "Installing hashi-ui..."
-sudo tee /etc/systemd/hashi-ui.service > /dev/null <<EOF
-[Unit]
-description "Hashi UI"
-
-[Service]
-KillSignal=INT
-ExecStart=/usr/local/bin/hashi-ui
-Restart=always
-Environment=LISTEN_ADDRESS="0.0.0.0:3000"
-Environment=CONSUL_ENABLE="true"
-Environment=NOMAD_ENABLE="true"
-ExecStopPost=sleep 10
-EOF
-
 sudo systemctl daemon-reload
 sudo systemctl enable consul.service
 sudo systemctl enable nomad.service
-sudo systemctl enable hashi-ui.service
 
 sudo systemctl start consul.service
 sudo systemctl start nomad.service
-sudo systemctl start hashi-ui.service
+
 
 # Start the fabio system job
 echo "Submitting fabio job..."

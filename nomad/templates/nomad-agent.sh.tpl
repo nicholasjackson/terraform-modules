@@ -9,6 +9,7 @@ echo "Installing dependencies..."
 sudo apt-get -qq update &>/dev/null
 sudo apt-get -yqq install unzip &>/dev/null
 
+
 echo "Installing Docker..."
 sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
 sudo apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'
@@ -82,17 +83,17 @@ sudo chmod +x hashi-ui
 sudo mv hashi-ui /usr/local/bin/hashi-ui
 
 echo "Installing hashi-ui..."
-sudo tee /etc/systemd/hashi-ui.service > /dev/null <<EOF
+sudo tee /etc/systemd/system/hashi-ui.service > /dev/null <<EOF
 [Unit]
-description "Hashi UI"
+description="Hashi UI"
 
 [Service]
 KillSignal=INT
 ExecStart=/usr/local/bin/hashi-ui
 Restart=always
-Environment=LISTEN_ADDRESS="0.0.0.0:3000"
-Environment=CONSUL_ENABLE="true"
-Environment=NOMAD_ENABLE="true"
+RestartSec=5
+Environment=CONSUL_ENABLE=true
+Environment=NOMAD_ENABLE=true
 ExecStopPost=sleep 10
 EOF
 
@@ -104,14 +105,3 @@ sudo systemctl enable hashi-ui.service
 sudo systemctl start consul.service
 sudo systemctl start nomad.service
 sudo systemctl start hashi-ui.service
-
-# Start the fabio system job
-echo "Submitting fabio job..."
-sudo tee /tmp/fabio.hcl > /dev/null <<"EOF"
-${fabio_job}
-EOF
-
-until nomad run /tmp/fabio.hcl; do
-  echo "Job failed to submit..."
-  sleep 2
-done

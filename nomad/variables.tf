@@ -34,6 +34,10 @@ variable "consul_version" {
   description = "Version number for nomad"
 }
 
+variable "hashiui_version" {
+  description = "Version number for hashi-ui"
+}
+
 variable "servers" {
   description = "The number of nomad servers."
 }

@@ -53,6 +53,17 @@ resource "aws_alb_target_group" "fabio" {
   }
 }
 
+resource "aws_alb_target_group" "ui" {
+  name     = "${var.namespace}-ui"
+  port     = 3000
+  protocol = "HTTP"
+  vpc_id   = "${var.vpc_id}"
+
+  health_check {
+    path = "/nomad"
+  }
+}
+
 resource "aws_alb_listener" "nomad" {
   load_balancer_arn = "${aws_alb.nomad.arn}"
   port              = "4646"
@@ -77,11 +88,22 @@ resource "aws_alb_listener" "consul" {
 
 resource "aws_alb_listener" "fabio" {
   load_balancer_arn = "${aws_alb.fabio.arn}"
-  port              = "9999"
+  port              = "80"
   protocol          = "HTTP"
 
   default_action {
     target_group_arn = "${aws_alb_target_group.fabio.arn}"
+    type             = "forward"
+  }
+}
+
+resource "aws_alb_listener" "ui" {
+  load_balancer_arn = "${aws_alb.fabio.arn}"
+  port              = "3000"
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = "${aws_alb_target_group.ui.arn}"
     type             = "forward"
   }
 }
