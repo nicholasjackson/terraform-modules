@@ -2,8 +2,12 @@ variable "aws_region" {
   description = "AWS region to create the environment"
 }
 
-variable "profile" {
-  description = "AWS profile for account"
+variable "aws_access_key_id" {
+  description = "AWS access key"
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret"
 }
 
 variable "namespace" {

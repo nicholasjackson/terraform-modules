@@ -27,8 +27,16 @@ variable "docker_ports" {
   type        = "list"
 }
 
-variable "profile" {
-  description = "Profile to use for ~/.aws/credentials"
+variable "aws_region" {
+  description = "AWS region to create the environment"
+}
+
+variable "aws_access_key_id" {
+  description = "AWS access key"
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret"
 }
 
 variable "instance_type" {
