@@ -44,12 +44,13 @@ resource "aws_alb_target_group" "consul" {
 
 resource "aws_alb_target_group" "fabio" {
   name     = "${var.namespace}-fabio"
-  port     = 9998
+  port     = 9999
   protocol = "HTTP"
   vpc_id   = "${var.vpc_id}"
 
   health_check {
     path = "/health"
+    port = 9998
   }
 }
 
