@@ -7,6 +7,8 @@ resource "aws_alb" "default" {
 }
 
 resource "aws_alb_target_group" "nomad" {
+  count = "${var.nomad_type == "server" ? 1 : 0}"
+
   name     = "${var.namespace}-nomad"
   port     = 4646
   protocol = "HTTP"
@@ -18,6 +20,8 @@ resource "aws_alb_target_group" "nomad" {
 }
 
 resource "aws_alb_target_group" "consul" {
+  count = "${var.consul_type == "client" ? 1 : 0}"
+
   name     = "${var.namespace}-consul"
   port     = 8500
   protocol = "HTTP"
@@ -29,6 +33,8 @@ resource "aws_alb_target_group" "consul" {
 }
 
 resource "aws_alb_target_group" "fabio" {
+  count = "${var.nomad_type == "client" ? 1 : 0}"
+
   name     = "${var.namespace}-fabio"
   port     = 9999
   protocol = "HTTP"
@@ -41,6 +47,8 @@ resource "aws_alb_target_group" "fabio" {
 }
 
 resource "aws_alb_target_group" "ui" {
+  count = "${var.hashiui_enabled == 1 ? 1 : 0}"
+
   name     = "${var.namespace}-ui"
   port     = 3000
   protocol = "HTTP"
@@ -52,6 +60,8 @@ resource "aws_alb_target_group" "ui" {
 }
 
 resource "aws_alb_listener" "nomad" {
+  count = "${var.nomad_type == "server" ? 1 : 0}"
+
   load_balancer_arn = "${aws_alb.default.arn}"
   port              = "4646"
   protocol          = "HTTP"
@@ -63,6 +73,8 @@ resource "aws_alb_listener" "nomad" {
 }
 
 resource "aws_alb_listener" "consul" {
+  count = "${var.consul_type == "client" ? 1 : 0}"
+
   load_balancer_arn = "${aws_alb.default.arn}"
   port              = "8500"
   protocol          = "HTTP"
@@ -74,6 +86,8 @@ resource "aws_alb_listener" "consul" {
 }
 
 resource "aws_alb_listener" "fabio" {
+  count = "${var.nomad_type == "client" ? 1 : 0}"
+
   load_balancer_arn = "${aws_alb.default.arn}"
   port              = "80"
   protocol          = "HTTP"
@@ -85,6 +99,8 @@ resource "aws_alb_listener" "fabio" {
 }
 
 resource "aws_alb_listener" "ui" {
+  count = "${var.hashiui_enabled == 1 ? 1 : 0}"
+
   load_balancer_arn = "${aws_alb.default.arn}"
   port              = "3000"
   protocol          = "HTTP"
