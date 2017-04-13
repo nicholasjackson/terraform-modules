@@ -5,7 +5,7 @@
   "data_dir": "/mnt/consul",
   "disable_remote_exec": true,
   "disable_update_check": true,
-  "bootstrap_expect": ${servers},
+  "bootstrap_expect": ${instances},
   "leave_on_terminate": true,
   "retry_join_ec2": {
     "tag_key": "${consul_join_tag_key}",
