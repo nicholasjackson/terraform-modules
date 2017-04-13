@@ -1,20 +1,6 @@
 # Create a new load balancer
-resource "aws_alb" "nomad" {
-  name            = "${var.namespace}-nomad"
-  internal        = false
-  security_groups = ["${aws_security_group.default.id}"]
-  subnets         = ["${var.subnets}"]
-}
-
-resource "aws_alb" "consul" {
-  name            = "${var.namespace}-consul"
-  internal        = false
-  security_groups = ["${aws_security_group.default.id}"]
-  subnets         = ["${var.subnets}"]
-}
-
-resource "aws_alb" "fabio" {
-  name            = "${var.namespace}-fabio"
+resource "aws_alb" "default" {
+  name            = "${var.namespace}"
   internal        = false
   security_groups = ["${aws_security_group.default.id}"]
   subnets         = ["${var.subnets}"]
@@ -66,7 +52,7 @@ resource "aws_alb_target_group" "ui" {
 }
 
 resource "aws_alb_listener" "nomad" {
-  load_balancer_arn = "${aws_alb.nomad.arn}"
+  load_balancer_arn = "${aws_alb.default.arn}"
   port              = "4646"
   protocol          = "HTTP"
 
@@ -77,7 +63,7 @@ resource "aws_alb_listener" "nomad" {
 }
 
 resource "aws_alb_listener" "consul" {
-  load_balancer_arn = "${aws_alb.consul.arn}"
+  load_balancer_arn = "${aws_alb.default.arn}"
   port              = "8500"
   protocol          = "HTTP"
 
@@ -88,7 +74,7 @@ resource "aws_alb_listener" "consul" {
 }
 
 resource "aws_alb_listener" "fabio" {
-  load_balancer_arn = "${aws_alb.fabio.arn}"
+  load_balancer_arn = "${aws_alb.default.arn}"
   port              = "80"
   protocol          = "HTTP"
 
@@ -99,7 +85,7 @@ resource "aws_alb_listener" "fabio" {
 }
 
 resource "aws_alb_listener" "ui" {
-  load_balancer_arn = "${aws_alb.fabio.arn}"
+  load_balancer_arn = "${aws_alb.default.arn}"
   port              = "3000"
   protocol          = "HTTP"
 

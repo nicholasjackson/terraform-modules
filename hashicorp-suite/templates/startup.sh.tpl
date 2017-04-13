@@ -9,7 +9,6 @@ function installDependencies() {
   echo "Installing dependencies..."
   sudo apt-get -qq update &>/dev/null
   sudo apt-get -yqq install unzip &>/dev/null
-
 }
 
 function installDocker() {
@@ -34,8 +33,8 @@ function installConsul() {
   sudo mkdir -p /mnt/consul
   sudo mkdir -p /etc/consul.d
   sudo tee /etc/consul.d/config.json > /dev/null <<EOF
-  $2
-  EOF
+  ${consul_config}
+EOF
   
   sudo tee /etc/systemd/system/consul.service > /dev/null <<"EOF"
   [Unit]
@@ -47,7 +46,7 @@ function installConsul() {
   ExecStart=/usr/local/bin/consul agent -config-dir="/etc/consul.d"
   Restart=always
   ExecStopPost=sleep 5
-  EOF
+EOF
 }
 
 
@@ -66,7 +65,7 @@ echo "Fetching Nomad..."
   sudo mkdir -p /etc/nomad.d
   sudo tee /etc/nomad.d/config.hcl > /dev/null <<EOF
   ${nomad_config}
-  EOF
+EOF
   
   sudo tee /etc/systemd/system/nomad.service > /dev/null <<"EOF"
   [Unit]
@@ -78,7 +77,7 @@ echo "Fetching Nomad..."
   ExecStart=/usr/local/bin/nomad agent -config="/etc/nomad.d"
   Restart=always
   ExecStopPost=sleep 5
-  EOF
+EOF
 }
 
 function installHashiUI() {
@@ -102,21 +101,45 @@ function installHashiUI() {
   Environment=CONSUL_ENABLE=true
   Environment=NOMAD_ENABLE=true
   ExecStopPost=sleep 10
-  EOF
+EOF
 }
 
-function startServices() {
-  sudo systemctl daemon-reload
-  sudo systemctl enable consul.service
-  sudo systemctl enable nomad.service
-  sudo systemctl enable hashi-ui.service
-  
-  sudo systemctl start consul.service
-  sudo systemctl start nomad.service
-  sudo systemctl start hashi-ui.service
-}
 
-if [[ -f ${consul_version} ]]; then
-  installConsul ${consul_version} ${consul_config}
+# Install software
+installDependencies
+
+if [[ ${consul_enabled} == 1 ]]; then
+  installConsul ${consul_version}
 fi
 
+if [[ ${nomad_enabled} == 1 ]]; then
+  installNomad ${nomad_version}
+fi
+
+
+if [[ ${nomad_enabled} == 1 && ${nomad_type} == "client" ]]; then
+  installDocker
+fi
+
+if [[ ${hashiui_enabled} == 1 ]]; then
+  installHashiUI ${hashiui_version}
+fi
+
+
+# Start services
+sudo systemctl daemon-reload
+  
+if [[ ${consul_enabled} == 1 ]]; then
+  sudo systemctl enable consul.service
+  sudo systemctl start consul.service
+fi
+
+if [[ ${nomad_enabled} == 1 ]]; then
+  sudo systemctl enable nomad.service
+  sudo systemctl start nomad.service
+fi
+
+if [[ ${hashiui_enabled} == 1 ]]; then
+  sudo systemctl enable hashi-ui.service
+  sudo systemctl start hashi-ui.service
+fi
