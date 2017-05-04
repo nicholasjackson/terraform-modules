@@ -13,6 +13,5 @@
     "tag_key": "${consul_join_tag_key}",
     "tag_value": "${consul_join_tag_value}"
   },
-  "server": false,
-  "raft_protocol": 3
+  "server": false
 }
