@@ -27,3 +27,7 @@ variable "subnets" {
 variable "vpc_id" {
   description = "The name of the vpc to attach the instances to"
 }
+
+variable "nodes" {
+  description = "The number of cache nodes to create in the cluster"
+}
