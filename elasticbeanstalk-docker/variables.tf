@@ -27,18 +27,6 @@ variable "docker_ports" {
   type        = "list"
 }
 
-variable "aws_region" {
-  description = "AWS region to create the environment"
-}
-
-variable "aws_access_key_id" {
-  description = "AWS access key"
-}
-
-variable "aws_secret_access_key" {
-  description = "AWS secret"
-}
-
 variable "instance_type" {
   description = "Type of the instance to deploy, e.g. t2.micro"
   default     = "t2.micro"
