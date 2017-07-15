@@ -16,7 +16,7 @@ data "archive_file" "zip" {
 
   source_content_filename = "Dockerrun.aws.json"
 
-  output_path = "./Dockerrun.zip"
+  output_path = "./${var.application_name}-Dockerrun.zip"
 }
 
 resource "aws_s3_bucket" "default" {
@@ -25,8 +25,8 @@ resource "aws_s3_bucket" "default" {
 
 resource "aws_s3_bucket_object" "default" {
   bucket = "${aws_s3_bucket.default.bucket}"
-  key    = "Dockerrun"
-  source = "./Dockerrun.zip"
+  key    = "${var.application_name}-Dockerrun"
+  source = "./${var.application_name}-Dockerrun.zip"
   etag   = "${data.archive_file.zip.output_md5}"
 }
 
@@ -52,7 +52,7 @@ resource "aws_elastic_beanstalk_application_version" "default" {
 resource "aws_elastic_beanstalk_environment" "default" {
   name                = "${var.application_name}-${var.application_environment}"
   application         = "${aws_elastic_beanstalk_application.default.name}"
-  solution_stack_name = "64bit Amazon Linux 2016.09 v2.5.1 running Docker 1.12.6"
+  solution_stack_name = "64bit Amazon Linux 2017.03 v2.7.0 running Docker 17.03.1-ce"
   version_label       = "${aws_elastic_beanstalk_application_version.default.name}"
 
   setting {
@@ -139,6 +139,30 @@ resource "aws_elastic_beanstalk_environment" "default" {
     namespace = "aws:elb:policies"
     name      = "ConnectionDrainingEnabled"
     value     = "true"
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "ELBScheme"
+    value     = "${var.elb_scheme}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "${element(var.env_vars, 0)}"
+    value     = "${element(var.env_vars, 1)}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "${element(var.env_vars, 2)}"
+    value     = "${element(var.env_vars, 3)}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "${element(var.env_vars, 4)}"
+    value     = "${element(var.env_vars, 5)}"
   }
 }
 

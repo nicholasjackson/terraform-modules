@@ -8,13 +8,13 @@ data "template_file" "ec2_role" {
 }
 
 resource "aws_iam_instance_profile" "ec2" {
-  name  = "${var.application_name}-beanstalk-ec2-user"
-  roles = ["${aws_iam_role.ec2.name}"]
+  name = "${var.application_name}-beanstalk-ec2-user"
+  role = "${aws_iam_role.ec2.name}"
 }
 
 resource "aws_iam_instance_profile" "service" {
-  name  = "${var.application_name}-beanstalk-service-user"
-  roles = ["${aws_iam_role.service.name}"]
+  name = "${var.application_name}-beanstalk-service-user"
+  role = "${aws_iam_role.service.name}"
 }
 
 resource "aws_iam_role" "ec2" {

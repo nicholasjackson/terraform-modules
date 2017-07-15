@@ -32,6 +32,11 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
+variable "elb_scheme" {
+  description = "Scheme for the ELB, internal, external"
+  default     = "external"
+}
+
 variable "autoscaling_maxsize" {
   description = "Maximum size for the autoscaling group"
   default     = "3"
@@ -39,4 +44,10 @@ variable "autoscaling_maxsize" {
 
 variable "health_check" {
   description = "Container endpoint to use for health checks"
+}
+
+variable "env_vars" {
+  description = "Environment variables"
+  type        = "list"
+  default     = []
 }
